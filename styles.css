@@ -1,0 +1,272 @@
+/* ===== Selection Tooltip ===== */
+
+.llm-annotation-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.llm-annotation-tooltip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  line-height: 1.4;
+  transition: background 0.1s ease, transform 0.1s ease;
+}
+
+.llm-annotation-tooltip-btn:hover {
+  background: var(--interactive-accent-hover);
+  transform: translateY(-1px);
+}
+
+.llm-annotation-tooltip-btn:active {
+  transform: translateY(0);
+}
+
+.llm-annotation-tooltip-btn svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+/* ===== Editor Highlights ===== */
+
+.llm-annotation-highlight {
+  border-radius: 3px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.llm-annotation-highlight:hover {
+  filter: brightness(0.92);
+}
+
+/* ===== Sidebar ===== */
+
+.llm-annotations-sidebar {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--background-primary);
+}
+
+.llm-annotations-header {
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-shrink: 0;
+}
+
+.llm-annotations-header h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.llm-annotations-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.llm-annotations-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border) !important;
+  background: transparent !important;
+  color: var(--text-normal);
+  cursor: pointer;
+  box-shadow: none !important;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.llm-annotations-btn:hover:not(:disabled) {
+  background: var(--background-modifier-hover) !important;
+  border-color: var(--background-modifier-border-hover) !important;
+}
+
+.llm-annotations-btn:active:not(:disabled) {
+  background: var(--background-modifier-active-hover);
+}
+
+.llm-annotations-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.llm-annotations-btn-danger {
+  background: transparent;
+  color: var(--text-normal);
+}
+
+.llm-annotations-btn-danger:hover:not(:disabled) {
+  color: var(--text-error);
+  border-color: var(--text-error);
+  background: transparent;
+}
+
+.llm-annotations-color-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.llm-annotations-color-label {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.llm-annotations-color-picker {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid var(--background-modifier-border);
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+  transition: border-color 0.15s ease;
+}
+
+.llm-annotations-color-picker:hover {
+  border-color: var(--text-muted);
+}
+
+/* ===== Annotation List ===== */
+
+.llm-annotations-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+
+.llm-annotations-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  padding: 40px 16px;
+  line-height: 1.6;
+}
+
+/* ===== Annotation Card ===== */
+
+.llm-annotations-card {
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--background-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.llm-annotations-card:hover {
+  border-color: var(--background-modifier-border-hover);
+}
+
+.llm-annotations-card-hover {
+  border-color: var(--interactive-accent) !important;
+  background: var(--background-secondary-alt);
+}
+
+.llm-annotations-line-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.llm-annotations-excerpt {
+  margin-bottom: 10px;
+}
+
+.llm-annotations-excerpt blockquote {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 2px solid var(--text-faint);
+  border-radius: 0 4px 4px 0;
+  background: var(--background-primary);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-style: italic;
+}
+
+.llm-annotations-feedback {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  resize: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.llm-annotations-feedback::placeholder {
+  color: var(--text-faint);
+}
+
+.llm-annotations-feedback:focus {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.15);
+  outline: none;
+}
+
+.llm-annotations-card-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.llm-annotations-btn-sm {
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border) !important;
+  background: transparent !important;
+  color: var(--text-normal);
+  cursor: pointer;
+  box-shadow: none !important;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.llm-annotations-btn-sm:hover {
+  background: var(--background-modifier-hover) !important;
+  border-color: var(--background-modifier-border-hover) !important;
+}
+
+.llm-annotations-btn-sm.llm-annotations-btn-danger:hover {
+  color: var(--text-error);
+  border-color: var(--text-error);
+  background: transparent;
+}

@@ -1,0 +1,272 @@
+import { ItemView, WorkspaceLeaf, MarkdownView } from 'obsidian';
+import type LLMAnnotationsPlugin from './main';
+import { compileSingleAnnotation } from './compiler';
+import { Annotation } from './types';
+import { truncateText, formatLineRange, getLineNumber } from './utils';
+
+export const VIEW_TYPE = 'llm-annotations-sidebar';
+
+export class AnnotationSidebarView extends ItemView {
+  private plugin: LLMAnnotationsPlugin;
+  private listEl!: HTMLElement;
+  private copyAllBtn!: HTMLButtonElement;
+  private clearAllBtn!: HTMLButtonElement;
+  pendingFocusId: string | null = null;
+  private focusTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(leaf: WorkspaceLeaf, plugin: LLMAnnotationsPlugin) {
+    super(leaf);
+    this.plugin = plugin;
+  }
+
+  getViewType(): string {
+    return VIEW_TYPE;
+  }
+
+  getDisplayText(): string {
+    return 'LLM Annotations';
+  }
+
+  getIcon(): string {
+    return 'message-square';
+  }
+
+  async onOpen() {
+    const container = this.containerEl.children[1] as HTMLElement;
+    container.empty();
+    container.addClass('llm-annotations-sidebar');
+
+    // Header
+    const header = container.createDiv({ cls: 'llm-annotations-header' });
+    header.createEl('h4', { text: 'LLM Annotations' });
+
+    // Controls row
+    const controls = header.createDiv({ cls: 'llm-annotations-controls' });
+
+    this.copyAllBtn = controls.createEl('button', {
+      text: 'Copy All',
+      cls: 'llm-annotations-btn',
+    });
+    this.copyAllBtn.addEventListener('click', () => {
+      this.plugin.copyAll();
+    });
+
+    this.clearAllBtn = controls.createEl('button', {
+      text: 'Clear All',
+      cls: 'llm-annotations-btn llm-annotations-btn-danger',
+    });
+    this.clearAllBtn.addEventListener('click', () => {
+      this.plugin.clearAll();
+    });
+
+    // Color picker
+    const colorWrap = controls.createDiv({ cls: 'llm-annotations-color-wrap' });
+    colorWrap.createSpan({ text: 'Color: ', cls: 'llm-annotations-color-label' });
+    const colorInput = colorWrap.createEl('input') as HTMLInputElement;
+    colorInput.type = 'color';
+    colorInput.value = this.plugin.highlightColor;
+    colorInput.className = 'llm-annotations-color-picker';
+    colorInput.addEventListener('input', (e) => {
+      this.plugin.setHighlightColor((e.target as HTMLInputElement).value);
+    });
+
+    // Annotation list
+    this.listEl = container.createDiv({ cls: 'llm-annotations-list' });
+
+    this.render();
+  }
+
+  render() {
+    if (!this.listEl) return;
+    this.listEl.empty();
+
+    const file = this.app.workspace.getActiveFile();
+    const annotations = file
+      ? this.plugin.store.getAnnotations(file.path)
+      : [];
+
+    // Update button states
+    if (this.copyAllBtn) this.copyAllBtn.disabled = annotations.length === 0;
+    if (this.clearAllBtn) this.clearAllBtn.disabled = annotations.length === 0;
+
+    if (!file) {
+      this.listEl.createDiv({
+        cls: 'llm-annotations-empty',
+        text: 'No active file.',
+      });
+      return;
+    }
+
+    if (annotations.length === 0) {
+      this.listEl.createDiv({
+        cls: 'llm-annotations-empty',
+        text: 'Select text and press Cmd+Shift+M to add an annotation.',
+      });
+      return;
+    }
+
+    // Backfill line numbers for annotations created before this field existed
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (view) {
+      const docText = view.editor.getValue();
+      for (const ann of annotations) {
+        if (!ann.lineStart) {
+          ann.lineStart = getLineNumber(docText, ann.from);
+          ann.lineEnd = getLineNumber(docText, ann.to);
+        }
+      }
+    }
+
+    const sorted = [...annotations].sort((a, b) => a.from - b.from);
+    for (const ann of sorted) {
+      this.renderCard(ann, file.path);
+    }
+
+    // Apply pending focus after DOM is built
+    if (this.pendingFocusId) {
+      this.startFocusRetries();
+    }
+  }
+
+  focusAnnotation(id: string) {
+    this.pendingFocusId = id;
+    this.startFocusRetries();
+  }
+
+  private startFocusRetries() {
+    if (this.focusTimer !== null) {
+      clearTimeout(this.focusTimer);
+      this.focusTimer = null;
+    }
+    this.tryFocusPending(10);
+  }
+
+  private tryFocusPending(attemptsLeft: number) {
+    if (!this.pendingFocusId) return;
+
+    const textarea = this.containerEl.querySelector(
+      `[data-annotation-id="${this.pendingFocusId}"] textarea`
+    ) as HTMLTextAreaElement | null;
+
+    if (textarea) {
+      textarea.focus();
+      if (document.activeElement === textarea) {
+        this.pendingFocusId = null;
+        this.focusTimer = null;
+        return;
+      }
+    }
+
+    if (attemptsLeft > 0) {
+      this.focusTimer = setTimeout(() => {
+        this.tryFocusPending(attemptsLeft - 1);
+      }, 50);
+    } else {
+      this.focusTimer = null;
+    }
+  }
+
+  private renderCard(ann: Annotation, filePath: string) {
+    const card = this.listEl.createDiv({
+      cls: 'llm-annotations-card',
+      attr: { 'data-annotation-id': ann.id },
+    });
+
+    // Line badge
+    card.createDiv({
+      cls: 'llm-annotations-line-badge',
+      text: formatLineRange(ann.lineStart, ann.lineEnd),
+    });
+
+    // Excerpt
+    const excerptEl = card.createDiv({ cls: 'llm-annotations-excerpt' });
+    excerptEl.createEl('blockquote', { text: truncateText(ann.highlightedText) });
+
+    // Feedback textarea
+    const textarea = card.createEl('textarea', {
+      cls: 'llm-annotations-feedback',
+      placeholder: 'Add your feedback...',
+    }) as HTMLTextAreaElement;
+    textarea.value = ann.feedback;
+    textarea.addEventListener('input', () => {
+      this.plugin.store.updateFeedback(filePath, ann.id, textarea.value);
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    });
+    // Auto-size on render
+    requestAnimationFrame(() => {
+      if (textarea.value) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
+    });
+
+    // Button row
+    const btnRow = card.createDiv({ cls: 'llm-annotations-card-buttons' });
+
+    const copyBtn = btnRow.createEl('button', {
+      text: 'Copy',
+      cls: 'llm-annotations-btn-sm',
+    });
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.copySingle(ann, copyBtn);
+    });
+
+    const deleteBtn = btnRow.createEl('button', {
+      text: 'Delete',
+      cls: 'llm-annotations-btn-sm llm-annotations-btn-danger',
+    });
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.plugin.store.removeAnnotation(filePath, ann.id);
+    });
+
+    // Click card to scroll to annotation
+    card.addEventListener('click', (e) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
+      this.scrollToAnnotation(ann);
+    });
+  }
+
+  highlightCard(annotationId: string | null) {
+    // Remove previous highlight
+    const prev = this.listEl?.querySelector('.llm-annotations-card-hover');
+    prev?.removeClass('llm-annotations-card-hover');
+
+    if (annotationId) {
+      const card = this.listEl?.querySelector(
+        `[data-annotation-id="${annotationId}"]`
+      );
+      if (card) {
+        card.addClass('llm-annotations-card-hover');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }
+
+  private scrollToAnnotation(ann: Annotation) {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view) return;
+    const editor = view.editor;
+    const from = editor.offsetToPos(ann.from);
+    const to = editor.offsetToPos(ann.to);
+    editor.setSelection(from, to);
+    editor.scrollIntoView({ from, to }, true);
+  }
+
+  private copySingle(ann: Annotation, btn: HTMLButtonElement) {
+    const file = this.app.workspace.getActiveFile();
+    if (!file) return;
+    const compiled = compileSingleAnnotation(ann, file.name);
+    navigator.clipboard.writeText(compiled);
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.textContent = original;
+    }, 1500);
+  }
+
+  async onClose() {}
+}
