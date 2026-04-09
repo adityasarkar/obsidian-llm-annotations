@@ -91,7 +91,13 @@ export function createEditorExtension(plugin: LLMAnnotationsPlugin) {
         }
 
         const head = sel.head;
-        const coords = this.view.coordsAtPos(head);
+        let coords;
+        try {
+          coords = this.view.coordsAtPos(head);
+        } catch {
+          this.tooltip.style.display = 'none';
+          return;
+        }
         if (!coords) {
           this.tooltip.style.display = 'none';
           return;

@@ -151,8 +151,12 @@ export class AnnotationSidebarView extends ItemView {
     if (textarea) {
       textarea.focus();
       if (document.activeElement === textarea) {
-        this.pendingFocusId = null;
-        this.focusTimer = null;
+        // Focus succeeded — keep pendingFocusId as a guard against
+        // re-renders that would destroy this textarea. Clear after settling.
+        this.focusTimer = setTimeout(() => {
+          this.pendingFocusId = null;
+          this.focusTimer = null;
+        }, 500);
         return;
       }
     }
@@ -163,6 +167,7 @@ export class AnnotationSidebarView extends ItemView {
       }, 50);
     } else {
       this.focusTimer = null;
+      this.pendingFocusId = null;
     }
   }
 

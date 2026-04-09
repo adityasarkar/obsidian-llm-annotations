@@ -119,16 +119,9 @@ export default class LLMAnnotationsPlugin extends Plugin {
     this.store.addAnnotation(annotation);
     await this.activateSidebar();
 
-    // Blur the CM6 editor so it doesn't fight for focus
-    const cmEditor = (markdownView.editor as any).cm as EditorView | undefined;
-    if (cmEditor) {
-      cmEditor.contentDOM.blur();
-    }
-
-    // Activate the sidebar leaf and focus the new annotation's textarea
+    // Focus the new annotation's textarea in the sidebar
     const leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE)[0];
     if (leaf) {
-      this.app.workspace.setActiveLeaf(leaf, { focus: true });
       (leaf.view as AnnotationSidebarView).focusAnnotation(annotation.id);
     }
   }
@@ -186,7 +179,11 @@ export default class LLMAnnotationsPlugin extends Plugin {
 
   refreshSidebar() {
     for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE)) {
-      (leaf.view as AnnotationSidebarView).render();
+      const sidebar = leaf.view as AnnotationSidebarView;
+      // Don't re-render while a textarea focus is being established —
+      // the render would destroy the just-focused element
+      if (sidebar.pendingFocusId) continue;
+      sidebar.render();
     }
   }
 
