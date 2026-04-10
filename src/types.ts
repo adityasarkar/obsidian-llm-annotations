@@ -6,5 +6,6 @@ export interface Annotation {
   lineStart: number;
   lineEnd: number;
   highlightedText: string;
+  currentText?: string;
   feedback: string;
 }

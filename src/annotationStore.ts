@@ -48,6 +48,7 @@ export class AnnotationStore {
     if (!list || list.length === 0) return false;
 
     const toRemove: string[] = [];
+    let textChanged = false;
     for (const ann of list) {
       ann.from = mapPos(ann.from, 1);
       ann.to = mapPos(ann.to, -1);
@@ -56,6 +57,11 @@ export class AnnotationStore {
       } else if (docText !== undefined) {
         ann.lineStart = getLineNumber(docText, ann.from);
         ann.lineEnd = getLineNumber(docText, ann.to);
+        const newText = docText.slice(ann.from, ann.to);
+        if (newText !== ann.highlightedText && newText !== ann.currentText) {
+          textChanged = true;
+        }
+        ann.currentText = newText;
       }
     }
 
@@ -69,7 +75,10 @@ export class AnnotationStore {
       this.notify();
       return true;
     }
-    return false;
+    if (textChanged) {
+      this.notify();
+    }
+    return textChanged;
   }
 
   onChanged(listener: Listener): () => void {

@@ -183,9 +183,27 @@ export class AnnotationSidebarView extends ItemView {
       text: formatLineRange(ann.lineStart, ann.lineEnd),
     });
 
-    // Excerpt
-    const excerptEl = card.createDiv({ cls: 'llm-annotations-excerpt' });
-    excerptEl.createEl('blockquote', { text: truncateText(ann.highlightedText) });
+    // Excerpt — show before/after if text has changed
+    const hasChanged = ann.currentText !== undefined && ann.currentText !== ann.highlightedText;
+
+    if (hasChanged) {
+      const badgeRow = card.querySelector('.llm-annotations-line-badge') as HTMLElement;
+      if (badgeRow) {
+        badgeRow.createSpan({ cls: 'llm-annotations-changed-badge', text: 'Changed' });
+      }
+
+      const diffEl = card.createDiv({ cls: 'llm-annotations-diff' });
+      diffEl.createDiv({ cls: 'llm-annotations-diff-label llm-annotations-diff-label-before', text: 'Before' });
+      const beforeExcerpt = diffEl.createDiv({ cls: 'llm-annotations-excerpt llm-annotations-excerpt-before' });
+      this.createExpandableQuote(beforeExcerpt, ann.highlightedText);
+
+      diffEl.createDiv({ cls: 'llm-annotations-diff-label llm-annotations-diff-label-after', text: 'After' });
+      const afterExcerpt = diffEl.createDiv({ cls: 'llm-annotations-excerpt llm-annotations-excerpt-after' });
+      this.createExpandableQuote(afterExcerpt, ann.currentText!);
+    } else {
+      const excerptEl = card.createDiv({ cls: 'llm-annotations-excerpt' });
+      this.createExpandableQuote(excerptEl, ann.highlightedText);
+    }
 
     // Feedback textarea
     const textarea = card.createEl('textarea', {
@@ -233,6 +251,27 @@ export class AnnotationSidebarView extends ItemView {
       if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
       this.scrollToAnnotation(ann);
     });
+  }
+
+  private createExpandableQuote(container: HTMLElement, fullText: string) {
+    const maxLen = 150;
+    const isTruncatable = fullText.length > maxLen;
+    const bq = container.createEl('blockquote', {
+      text: isTruncatable ? truncateText(fullText, maxLen) : fullText,
+    });
+    if (isTruncatable) {
+      let expanded = false;
+      const toggle = container.createEl('span', {
+        cls: 'llm-annotations-expand-toggle',
+        text: 'Show more',
+      });
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        expanded = !expanded;
+        bq.textContent = expanded ? fullText : truncateText(fullText, maxLen);
+        toggle.textContent = expanded ? 'Show less' : 'Show more';
+      });
+    }
   }
 
   highlightCard(annotationId: string | null) {

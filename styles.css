@@ -199,6 +199,18 @@
   margin-bottom: 10px;
 }
 
+.llm-annotations-expand-toggle {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-accent);
+  cursor: pointer;
+}
+
+.llm-annotations-expand-toggle:hover {
+  text-decoration: underline;
+}
+
 .llm-annotations-excerpt blockquote {
   margin: 0;
   padding: 6px 10px;
@@ -211,6 +223,50 @@
   white-space: pre-wrap;
   word-break: break-word;
   font-style: italic;
+}
+
+/* ===== Diff Display ===== */
+
+.llm-annotations-changed-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  border-radius: 4px;
+  vertical-align: middle;
+  letter-spacing: 0.02em;
+}
+
+.llm-annotations-diff {
+  margin-bottom: 10px;
+}
+
+.llm-annotations-diff-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+}
+
+.llm-annotations-diff-label-before {
+  color: var(--text-error);
+}
+
+.llm-annotations-diff-label-after {
+  color: var(--color-green);
+  margin-top: 6px;
+}
+
+.llm-annotations-excerpt-before blockquote {
+  border-left-color: var(--text-error);
+}
+
+.llm-annotations-excerpt-after blockquote {
+  border-left-color: var(--color-green);
 }
 
 .llm-annotations-feedback {

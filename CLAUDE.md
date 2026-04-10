@@ -20,13 +20,14 @@ An Obsidian plugin for iterating on writing with an LLM. Users highlight passage
 - **Single-file scope**: Annotations are keyed by file path. Sidebar shows annotations for the active file.
 - **CM6 decorations**: Highlights use a `StateField<DecorationSet>` with mark decorations. Positions update via `mapPos()` on doc changes.
 - **Hover linkage**: Hovering a highlight in the editor visually emphasizes the corresponding sidebar card, and vice versa.
+- **Before/After diffs**: When the document text under an annotation changes (e.g., after Claude Code edits), the sidebar card shows a "Changed" badge with before/after excerpts. The `currentText` field on each annotation is updated in `updatePositions()` by slicing the new doc text at the mapped offsets.
 
 ## Architecture
 
 ```
 src/
   main.ts              # Plugin class — commands, context menu, ribbon icon, UI refresh
-  types.ts             # Annotation interface (id, filePath, from, to, lineStart, lineEnd, highlightedText, feedback)
+  types.ts             # Annotation interface (id, filePath, from, to, lineStart, lineEnd, highlightedText, currentText?, feedback)
   annotationStore.ts   # In-memory Map<filePath, Annotation[]> with listener pattern
   sidebarView.ts       # ItemView — annotation cards, Copy All, Clear All, color picker
   editorExtension.ts   # CM6 StateField (decorations), ViewPlugin (tooltip + hover), update listener (position sync)
