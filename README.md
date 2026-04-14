@@ -191,20 +191,22 @@ Three files (you should have received all three):
 
 1. Open any markdown note in Obsidian.
 2. **Select some text** in the editor. A small **Annotate** button appears near your selection.
-3. Click the button (or press **Cmd+Shift+M**). The sidebar opens with a new annotation entry.
+3. Click the button (or run the **Annotate selection** command). The sidebar opens with a new annotation entry.
 4. **Type your feedback** in the text area — this is the instruction or comment you want to pass to the LLM.
 5. Repeat for as many passages as you want.
-6. Click **Copy All** in the sidebar. The compiled output is now on your clipboard.
+6. Click **Copy all** in the sidebar. The compiled output is now on your clipboard.
 7. Paste into Claude Code, ChatGPT, or any other LLM interface.
-8. Click **Clear All** when you're done to remove all annotations.
+8. Click **Clear all** when you're done to remove all annotations.
 
 ### Commands
 
-| Command | Hotkey | Description |
-|---|---|---|
-| Annotate selection | `Cmd+Shift+M` | Annotate the currently selected text |
-| Toggle sidebar | — | Show/hide the annotation sidebar |
-| Copy all annotations | — | Copy all annotations to clipboard |
-| Clear all annotations | — | Remove all annotations |
+All commands are available via the command palette (`Cmd/Ctrl+P`). No default hotkeys are assigned — you can set your own in **Settings → Hotkeys**.
 
-You can also right-click selected text and choose **Annotate Selection** from the context menu.
+| Command | Description |
+|---|---|
+| Annotate selection | Annotate the currently selected text |
+| Toggle sidebar | Show/hide the annotation sidebar |
+| Copy all annotations | Copy all annotations to clipboard |
+| Clear all annotations | Remove all annotations |
+
+You can also right-click selected text and choose **Annotate selection** from the context menu.
