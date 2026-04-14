@@ -24,27 +24,27 @@ export class AnnotationSidebarView extends ItemView {
   }
 
   getDisplayText(): string {
-    return 'LLM Annotations';
+    return 'LLM annotations';
   }
 
   getIcon(): string {
     return 'message-square';
   }
 
-  async onOpen() {
+  onOpen(): Promise<void> {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
     container.addClass('llm-annotations-sidebar');
 
     // Header
     const header = container.createDiv({ cls: 'llm-annotations-header' });
-    header.createEl('h4', { text: 'LLM Annotations' });
+    header.createEl('h4', { text: 'LLM annotations' });
 
     // Controls row
     const controls = header.createDiv({ cls: 'llm-annotations-controls' });
 
     this.copyAllBtn = controls.createEl('button', {
-      text: 'Copy All',
+      text: 'Copy all',
       cls: 'llm-annotations-btn',
     });
     this.copyAllBtn.addEventListener('click', () => {
@@ -52,7 +52,7 @@ export class AnnotationSidebarView extends ItemView {
     });
 
     this.clearAllBtn = controls.createEl('button', {
-      text: 'Clear All',
+      text: 'Clear all',
       cls: 'llm-annotations-btn llm-annotations-btn-danger',
     });
     this.clearAllBtn.addEventListener('click', () => {
@@ -62,7 +62,7 @@ export class AnnotationSidebarView extends ItemView {
     // Color picker
     const colorWrap = controls.createDiv({ cls: 'llm-annotations-color-wrap' });
     colorWrap.createSpan({ text: 'Color: ', cls: 'llm-annotations-color-label' });
-    const colorInput = colorWrap.createEl('input') as HTMLInputElement;
+    const colorInput = colorWrap.createEl('input');
     colorInput.type = 'color';
     colorInput.value = this.plugin.highlightColor;
     colorInput.className = 'llm-annotations-color-picker';
@@ -74,6 +74,7 @@ export class AnnotationSidebarView extends ItemView {
     this.listEl = container.createDiv({ cls: 'llm-annotations-list' });
 
     this.render();
+    return Promise.resolve();
   }
 
   render() {
@@ -100,7 +101,7 @@ export class AnnotationSidebarView extends ItemView {
     if (annotations.length === 0) {
       this.listEl.createDiv({
         cls: 'llm-annotations-empty',
-        text: 'Select text and press Cmd+Shift+M to add an annotation.',
+        text: 'Select text and run the "Annotate selection" command to add an annotation. Assign a hotkey in Settings → Hotkeys.',
       });
       return;
     }
@@ -144,9 +145,9 @@ export class AnnotationSidebarView extends ItemView {
   private tryFocusPending(attemptsLeft: number) {
     if (!this.pendingFocusId) return;
 
-    const textarea = this.containerEl.querySelector(
+    const textarea = this.containerEl.querySelector<HTMLTextAreaElement>(
       `[data-annotation-id="${this.pendingFocusId}"] textarea`
-    ) as HTMLTextAreaElement | null;
+    );
 
     if (textarea) {
       textarea.focus();
@@ -209,18 +210,18 @@ export class AnnotationSidebarView extends ItemView {
     const textarea = card.createEl('textarea', {
       cls: 'llm-annotations-feedback',
       placeholder: 'Add your feedback...',
-    }) as HTMLTextAreaElement;
+    });
     textarea.value = ann.feedback;
     textarea.addEventListener('input', () => {
       this.plugin.store.updateFeedback(filePath, ann.id, textarea.value);
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
+      textarea.setCssStyles({ height: 'auto' });
+      textarea.setCssStyles({ height: textarea.scrollHeight + 'px' });
     });
     // Auto-size on render
     requestAnimationFrame(() => {
       if (textarea.value) {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
+        textarea.setCssStyles({ height: 'auto' });
+        textarea.setCssStyles({ height: textarea.scrollHeight + 'px' });
       }
     });
 
@@ -304,7 +305,7 @@ export class AnnotationSidebarView extends ItemView {
     const file = this.app.workspace.getActiveFile();
     if (!file) return;
     const compiled = compileSingleAnnotation(ann, file.name);
-    navigator.clipboard.writeText(compiled);
+    void navigator.clipboard.writeText(compiled);
     const original = btn.textContent;
     btn.textContent = 'Copied!';
     setTimeout(() => {
@@ -312,5 +313,7 @@ export class AnnotationSidebarView extends ItemView {
     }, 1500);
   }
 
-  async onClose() {}
+  onClose(): Promise<void> {
+    return Promise.resolve();
+  }
 }

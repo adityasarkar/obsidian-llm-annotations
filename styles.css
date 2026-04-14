@@ -6,6 +6,10 @@
   pointer-events: auto;
 }
 
+.llm-annotation-tooltip.is-hidden {
+  display: none;
+}
+
 .llm-annotation-tooltip-btn {
   display: inline-flex;
   align-items: center;

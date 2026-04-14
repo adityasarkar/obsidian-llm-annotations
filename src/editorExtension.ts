@@ -6,7 +6,7 @@ import {
   ViewPlugin,
   ViewUpdate,
 } from '@codemirror/view';
-import { MarkdownView } from 'obsidian';
+import { MarkdownView, setIcon } from 'obsidian';
 import type LLMAnnotationsPlugin from './main';
 import { Annotation } from './types';
 
@@ -60,13 +60,15 @@ export function createEditorExtension(plugin: LLMAnnotationsPlugin) {
 
       constructor(private view: EditorView) {
         this.tooltip = document.createElement('div');
-        this.tooltip.className = 'llm-annotation-tooltip';
-        this.tooltip.style.display = 'none';
+        this.tooltip.className = 'llm-annotation-tooltip is-hidden';
 
         const btn = document.createElement('button');
         btn.className = 'llm-annotation-tooltip-btn';
-        btn.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Annotate';
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'llm-annotation-tooltip-icon';
+        setIcon(iconSpan, 'pencil');
+        btn.appendChild(iconSpan);
+        btn.appendText(' Annotate');
 
         btn.addEventListener('mousedown', (e) => {
           e.preventDefault();
@@ -80,13 +82,13 @@ export function createEditorExtension(plugin: LLMAnnotationsPlugin) {
 
       update(update: ViewUpdate) {
         if (!this.view.hasFocus) {
-          this.tooltip.style.display = 'none';
+          this.tooltip.classList.add('is-hidden');
           return;
         }
 
         const sel = update.state.selection.main;
         if (sel.empty) {
-          this.tooltip.style.display = 'none';
+          this.tooltip.classList.add('is-hidden');
           return;
         }
 
@@ -95,22 +97,24 @@ export function createEditorExtension(plugin: LLMAnnotationsPlugin) {
         try {
           coords = this.view.coordsAtPos(head);
         } catch {
-          this.tooltip.style.display = 'none';
+          this.tooltip.classList.add('is-hidden');
           return;
         }
         if (!coords) {
-          this.tooltip.style.display = 'none';
+          this.tooltip.classList.add('is-hidden');
           return;
         }
 
-        this.tooltip.style.display = '';
+        this.tooltip.classList.remove('is-hidden');
         const tooltipHeight = this.tooltip.offsetHeight || 30;
         let top = coords.top - tooltipHeight - 6;
         if (top < 0) {
           top = coords.bottom + 6;
         }
-        this.tooltip.style.left = `${coords.left}px`;
-        this.tooltip.style.top = `${top}px`;
+        this.tooltip.setCssStyles({
+          left: `${coords.left}px`,
+          top: `${top}px`,
+        });
       }
 
       destroy() {
@@ -126,7 +130,7 @@ export function createEditorExtension(plugin: LLMAnnotationsPlugin) {
     let filePath: string | null = null;
     plugin.app.workspace.iterateAllLeaves((leaf) => {
       if (leaf.view instanceof MarkdownView) {
-        const cm = (leaf.view.editor as any).cm as EditorView;
+        const cm = (leaf.view.editor as unknown as { cm: EditorView }).cm;
         if (cm === update.view) {
           filePath = leaf.view.file?.path || null;
         }

@@ -11,7 +11,7 @@ export default class LLMAnnotationsPlugin extends Plugin {
   store = new AnnotationStore();
   highlightColor = '#ffeb3b';
 
-  async onload() {
+  onload() {
     this.registerView(VIEW_TYPE, (leaf) => new AnnotationSidebarView(leaf, this));
 
     this.registerEditorExtension(createEditorExtension(this));
@@ -20,10 +20,9 @@ export default class LLMAnnotationsPlugin extends Plugin {
     this.addCommand({
       id: 'annotate-selection',
       name: 'Annotate selection',
-      hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'm' }],
       editorCallback: (editor: Editor, ctx) => {
         const markdownView = ctx instanceof MarkdownView ? ctx : null;
-        if (markdownView) this.annotateSelection(editor, markdownView);
+        if (markdownView) void this.annotateSelection(editor, markdownView);
       },
     });
 
@@ -46,8 +45,8 @@ export default class LLMAnnotationsPlugin extends Plugin {
     });
 
     // Ribbon icon
-    this.addRibbonIcon('message-square', 'LLM Annotations', () => {
-      this.toggleSidebar();
+    this.addRibbonIcon('message-square', 'LLM annotations', () => {
+      void this.toggleSidebar();
     });
 
     // Context menu
@@ -56,11 +55,11 @@ export default class LLMAnnotationsPlugin extends Plugin {
         if (editor.getSelection()) {
           menu.addItem((item) => {
             item
-              .setTitle('Annotate Selection')
+              .setTitle('Annotate selection')
               .setIcon('pencil')
               .onClick(() => {
                 const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (view) this.annotateSelection(editor, view);
+                if (view) void this.annotateSelection(editor, view);
               });
           });
         }
@@ -84,9 +83,7 @@ export default class LLMAnnotationsPlugin extends Plugin {
     );
   }
 
-  onunload() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE);
-  }
+  onunload() {}
 
   // --- Annotation actions ---
 
@@ -129,7 +126,7 @@ export default class LLMAnnotationsPlugin extends Plugin {
   annotateCurrentSelection() {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view) return;
-    this.annotateSelection(view.editor, view);
+    void this.annotateSelection(view.editor, view);
   }
 
   copyAll() {
@@ -143,7 +140,7 @@ export default class LLMAnnotationsPlugin extends Plugin {
     }
 
     const compiled = compileAnnotations(annotations, file.name);
-    navigator.clipboard.writeText(compiled);
+    void navigator.clipboard.writeText(compiled);
     new Notice('Copied all annotations!');
   }
 
@@ -172,7 +169,7 @@ export default class LLMAnnotationsPlugin extends Plugin {
       leaf = rightLeaf;
       await leaf.setViewState({ type: VIEW_TYPE, active: true });
     }
-    this.app.workspace.revealLeaf(leaf);
+    await this.app.workspace.revealLeaf(leaf);
   }
 
   // --- UI refresh ---
@@ -199,7 +196,7 @@ export default class LLMAnnotationsPlugin extends Plugin {
         leaf.view instanceof MarkdownView &&
         leaf.view.file?.path === file.path
       ) {
-        const cmEditor = (leaf.view.editor as any).cm as EditorView | undefined;
+        const cmEditor = (leaf.view.editor as unknown as { cm?: EditorView }).cm;
         if (cmEditor) {
           cmEditor.dispatch({
             effects: setAnnotationsEffect.of({ annotations, color }),

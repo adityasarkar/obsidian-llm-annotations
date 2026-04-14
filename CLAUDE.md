@@ -8,11 +8,11 @@ An Obsidian plugin for iterating on writing with an LLM. Users highlight passage
 
 ## Core Workflow
 
-1. Select text in editor → floating "Annotate" tooltip appears (or use `Cmd+Shift+M`)
+1. Select text in editor → floating "Annotate" tooltip appears (or run the "Annotate selection" command, which users bind to a hotkey in Settings → Hotkeys — no default hotkey is shipped, per Obsidian plugin guidelines)
 2. Sidebar opens with a new annotation card; user types feedback in the textarea
 3. Repeat for multiple passages
-4. "Copy All" compiles annotations into structured format with file name, line numbers, quoted text, and feedback
-5. "Clear All" removes all annotations
+4. "Copy all" compiles annotations into structured format with file name, line numbers, quoted text, and feedback
+5. "Clear all" removes all annotations
 
 ## Key Design Decisions
 
@@ -29,7 +29,7 @@ src/
   main.ts              # Plugin class — commands, context menu, ribbon icon, UI refresh
   types.ts             # Annotation interface (id, filePath, from, to, lineStart, lineEnd, highlightedText, currentText?, feedback)
   annotationStore.ts   # In-memory Map<filePath, Annotation[]> with listener pattern
-  sidebarView.ts       # ItemView — annotation cards, Copy All, Clear All, color picker
+  sidebarView.ts       # ItemView — annotation cards, Copy all, Clear all, color picker
   editorExtension.ts   # CM6 StateField (decorations), ViewPlugin (tooltip + hover), update listener (position sync)
   compiler.ts          # Compiles annotations into LLM-formatted text
   utils.ts             # generateId, getLineNumber, formatLineRange, truncateText
@@ -38,12 +38,14 @@ styles.css             # All plugin styles (highlights, sidebar, tooltip)
 
 ## Commands
 
-| Command ID | Hotkey | Action |
-|---|---|---|
-| `annotate-selection` | `Cmd+Shift+M` | Annotate selected text |
-| `toggle-sidebar` | — | Toggle sidebar panel |
-| `copy-all` | — | Copy all annotations to clipboard |
-| `clear-all` | — | Clear all annotations |
+No default hotkeys are shipped (per Obsidian plugin guidelines). Users assign hotkeys via Settings → Hotkeys.
+
+| Command ID | Action |
+|---|---|
+| `annotate-selection` | Annotate selected text |
+| `toggle-sidebar` | Toggle sidebar panel |
+| `copy-all` | Copy all annotations to clipboard |
+| `clear-all` | Clear all annotations |
 
 ## Build & Deploy
 
