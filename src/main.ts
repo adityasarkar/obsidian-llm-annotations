@@ -45,7 +45,7 @@ export default class LLMAnnotationsPlugin extends Plugin {
     });
 
     // Ribbon icon
-    this.addRibbonIcon('message-square', 'LLM annotations', () => {
+    this.addRibbonIcon('message-square', 'LLM Annotations', () => {
       void this.toggleSidebar();
     });
 
