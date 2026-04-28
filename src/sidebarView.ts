@@ -24,7 +24,7 @@ export class AnnotationSidebarView extends ItemView {
   }
 
   getDisplayText(): string {
-    return 'LLM Annotations';
+    return 'LLM annotations';
   }
 
   getIcon(): string {
@@ -38,7 +38,7 @@ export class AnnotationSidebarView extends ItemView {
 
     // Header
     const header = container.createDiv({ cls: 'llm-annotations-header' });
-    header.createEl('h4', { text: 'LLM Annotations' });
+    header.createEl('h4', { text: 'LLM annotations' });
 
     // Controls row
     const controls = header.createDiv({ cls: 'llm-annotations-controls' });
